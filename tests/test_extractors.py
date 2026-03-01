@@ -210,18 +210,14 @@ class TestExtractValidations:
         assert len(validations) == 2
 
         # Check list validation
-        list_validation = next(
-            (v for v in validations if v.type == "list"), None
-        )
+        list_validation = next((v for v in validations if v.type == "list"), None)
         assert list_validation is not None
         assert '"Active,Inactive,Pending"' in (list_validation.formula1 or "")
         assert list_validation.prompt == "Select a status"
         assert list_validation.error == "Invalid status"
 
         # Check whole number validation
-        whole_validation = next(
-            (v for v in validations if v.type == "whole"), None
-        )
+        whole_validation = next((v for v in validations if v.type == "whole"), None)
         assert whole_validation is not None
         assert whole_validation.formula1 == "1"
         assert whole_validation.formula2 == "100"

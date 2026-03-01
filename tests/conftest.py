@@ -142,7 +142,9 @@ def _create_styled_cells() -> None:
     ws["A2"].font = Font(color="FF0000")
 
     ws["B2"] = "Blue Background"
-    ws["B2"].fill = PatternFill(start_color="0000FF", end_color="0000FF", fill_type="solid")
+    ws["B2"].fill = PatternFill(
+        start_color="0000FF", end_color="0000FF", fill_type="solid"
+    )
 
     # Alignment
     ws["A3"] = "Center"
