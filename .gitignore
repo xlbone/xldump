@@ -333,9 +333,8 @@ dmypy.json
 dist/
 prompt/
 
-# Serena MCP (AI tool memories - session-specific)
-**/.serena/memories/
-**/.serena/cache/
+# Serena MCP (AI tool data - session-specific)
+**/.serena/
 
 # Task management (working files)
 tasks/
