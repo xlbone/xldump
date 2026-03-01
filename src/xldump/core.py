@@ -10,7 +10,13 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from xldump.extractors import extract_cells, extract_merged_cells, extract_sheet_info
+from xldump.extractors import (
+    extract_cells,
+    extract_images,
+    extract_merged_cells,
+    extract_sheet_info,
+    extract_validations,
+)
 from xldump.models import ScanResult, SheetDump, SheetInfo, WorkbookDump
 
 
@@ -120,10 +126,13 @@ def dump(
             index = wb.sheetnames.index(sheet_name)
             sheet_dump = _dump_sheet(
                 ws,
+                wb,
                 index,
                 include_styles=include_styles,
                 include_values=include_values,
                 include_merges=include_merges,
+                include_validations=include_validations,
+                include_images=include_images,
             )
             sheet_dumps.append(sheet_dump)
 
@@ -185,10 +194,13 @@ def dump_sheet(
 
         return _dump_sheet(
             ws,
+            wb,
             index,
             include_styles=include_styles,
             include_values=include_values,
             include_merges=include_merges,
+            include_validations=include_validations,
+            include_images=include_images,
         )
     finally:
         wb.close()
@@ -218,36 +230,53 @@ def _validate_file(filepath: Path) -> None:
 
 def _dump_sheet(
     ws,  # Worksheet type
+    wb,  # Workbook type for theme color resolution
     index: int,
     *,
     include_styles: bool,
     include_values: bool,
     include_merges: bool,
+    include_validations: bool,
+    include_images: bool,
 ) -> SheetDump:
     """Dump a single worksheet to a SheetDump object.
 
     Args:
         ws: The openpyxl Worksheet to dump.
+        wb: The openpyxl Workbook for theme color resolution.
         index: The zero-based index of the sheet.
         include_styles: Whether to include style information.
         include_values: Whether to include cell values.
         include_merges: Whether to include merged cell information.
+        include_validations: Whether to include data validation rules.
+        include_images: Whether to include image position information.
 
     Returns:
         A SheetDump containing the sheet's structure.
 
     """
-    # Extract cells
+    # Extract cells (with workbook for theme color resolution)
     rows = extract_cells(
         ws,
         include_styles=include_styles,
         include_values=include_values,
+        workbook=wb,
     )
 
     # Extract merged cells
     merged_cells = []
     if include_merges:
         merged_cells = extract_merged_cells(ws)
+
+    # Extract data validations
+    data_validations = []
+    if include_validations:
+        data_validations = extract_validations(ws)
+
+    # Extract images
+    images = []
+    if include_images:
+        images = extract_images(ws)
 
     return SheetDump(
         name=ws.title,
@@ -256,7 +285,7 @@ def _dump_sheet(
         max_row=ws.max_row if ws.max_row else 0,
         max_column=ws.max_column if ws.max_column else 0,
         merged_cells=merged_cells,
-        data_validations=[],  # Phase 2
-        images=[],  # Phase 2
+        data_validations=data_validations,
+        images=images,
         rows=rows,
     )

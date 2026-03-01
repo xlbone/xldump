@@ -5,8 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from xldump import dump, scan
 from xldump.formatters import JsonFormatter
 

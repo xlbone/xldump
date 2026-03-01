@@ -26,7 +26,6 @@ exclude = [
     "node_modules",       # Node.jsの依存パッケージ
     "site-packages",      # Pythonの依存パッケージ
     "venv",               # 仮想環境ディレクトリの別名
-    "tests",              # テストディレクトリ
 ]
 
 # Blackと同じ設定で、1行の長さを88文字に設定
@@ -67,6 +66,7 @@ unfixable = []
 # テストファイルでは特定のルールを無視
 "tests/**/*.py" = [
     "S101",  # assertの使用を許可
+    "S603",  # subprocess callを許可（テストで必要）
     "D",     # docstringを強制しない
 ]
 # 設定ファイルや初期化ファイルで未使用インポートを許可

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 from openpyxl.utils import get_column_letter
 
+from xldump.extractors.color import resolve_color
 from xldump.models import (
     AlignmentInfo,
     BorderInfo,
@@ -24,7 +25,7 @@ from xldump.models import (
 if TYPE_CHECKING:
     from openpyxl.cell import Cell
     from openpyxl.styles import Alignment, Border, Fill, Font, Protection, Side
-    from openpyxl.styles.colors import Color
+    from openpyxl.workbook import Workbook
     from openpyxl.worksheet.worksheet import Worksheet
 
 
@@ -33,6 +34,7 @@ def extract_cells(
     *,
     include_styles: bool = True,
     include_values: bool = True,
+    workbook: Workbook | None = None,
 ) -> dict[str, dict[str, CellDump | None]]:
     """Extract all cells from a worksheet as a nested dict (row -> column).
 
@@ -40,6 +42,7 @@ def extract_cells(
         ws: The openpyxl Worksheet to extract from.
         include_styles: Whether to include style information.
         include_values: Whether to include cell values.
+        workbook: The workbook for theme color resolution (optional).
 
     Returns:
         A dict mapping row numbers (as strings) to dicts mapping
@@ -93,6 +96,7 @@ def extract_cells(
                 cell,
                 include_styles=include_styles,
                 include_values=include_values,
+                workbook=workbook,
             )
             rows[row_num][col_letter] = cell_dump
 
@@ -127,6 +131,7 @@ def _cell_to_dump(
     *,
     include_styles: bool = True,
     include_values: bool = True,
+    workbook: Workbook | None = None,
 ) -> CellDump:
     """Convert an openpyxl Cell to a CellDump dataclass.
 
@@ -134,6 +139,7 @@ def _cell_to_dump(
         cell: The openpyxl Cell to convert.
         include_styles: Whether to include style information.
         include_values: Whether to include cell values.
+        workbook: The workbook for theme color resolution (optional).
 
     Returns:
         A CellDump object representing the cell.
@@ -145,10 +151,10 @@ def _cell_to_dump(
     style: CellStyle | None = None
     if include_styles:
         style = CellStyle(
-            font=_extract_font(cell.font) if cell.font else None,
-            fill=_extract_fill(cell.fill) if cell.fill else None,
+            font=_extract_font(cell.font, workbook) if cell.font else None,
+            fill=_extract_fill(cell.fill, workbook) if cell.fill else None,
             alignment=_extract_alignment(cell.alignment) if cell.alignment else None,
-            border=_extract_border(cell.border) if cell.border else None,
+            border=_extract_border(cell.border, workbook) if cell.border else None,
             number_format=cell.number_format if cell.number_format else "General",
             protection=_extract_protection(cell.protection)
             if cell.protection
@@ -163,27 +169,27 @@ def _cell_to_dump(
     )
 
 
-def _extract_font(font: Font) -> FontInfo:
+def _extract_font(font: Font, workbook: Workbook | None = None) -> FontInfo:
     """Extract font information from an openpyxl Font object."""
     return FontInfo(
         name=font.name,
         size=font.size,
         bold=bool(font.bold),
         italic=bool(font.italic),
-        color=_resolve_color(font.color) if font.color else None,
+        color=resolve_color(font.color, workbook) if font.color else None,
     )
 
 
-def _extract_fill(fill: Fill) -> FillInfo:
+def _extract_fill(fill: Fill, workbook: Workbook | None = None) -> FillInfo:
     """Extract fill information from an openpyxl Fill object."""
     fill_type = getattr(fill, "fill_type", None) or getattr(fill, "patternType", None)
     fg_color = None
 
     # Handle PatternFill
     if hasattr(fill, "fgColor") and fill.fgColor:
-        fg_color = _resolve_color(fill.fgColor)
+        fg_color = resolve_color(fill.fgColor, workbook)
     elif hasattr(fill, "start_color") and fill.start_color:
-        fg_color = _resolve_color(fill.start_color)
+        fg_color = resolve_color(fill.start_color, workbook)
 
     return FillInfo(
         type=fill_type,
@@ -200,23 +206,25 @@ def _extract_alignment(alignment: Alignment) -> AlignmentInfo:
     )
 
 
-def _extract_border(border: Border) -> BorderInfo:
+def _extract_border(border: Border, workbook: Workbook | None = None) -> BorderInfo:
     """Extract border information from an openpyxl Border object."""
     return BorderInfo(
-        top=_extract_border_side(border.top) if border.top else None,
-        bottom=_extract_border_side(border.bottom) if border.bottom else None,
-        left=_extract_border_side(border.left) if border.left else None,
-        right=_extract_border_side(border.right) if border.right else None,
+        top=_extract_border_side(border.top, workbook) if border.top else None,
+        bottom=_extract_border_side(border.bottom, workbook) if border.bottom else None,
+        left=_extract_border_side(border.left, workbook) if border.left else None,
+        right=_extract_border_side(border.right, workbook) if border.right else None,
     )
 
 
-def _extract_border_side(side: Side) -> BorderSideInfo | None:
+def _extract_border_side(
+    side: Side, workbook: Workbook | None = None
+) -> BorderSideInfo | None:
     """Extract border side information from an openpyxl Side object."""
     if not side.style:
         return None
     return BorderSideInfo(
         style=side.style,
-        color=_resolve_color(side.color) if side.color else None,
+        color=resolve_color(side.color, workbook) if side.color else None,
     )
 
 
@@ -226,51 +234,3 @@ def _extract_protection(protection: Protection) -> ProtectionInfo:
         locked=bool(protection.locked) if protection.locked is not None else True,
         hidden=bool(protection.hidden) if protection.hidden is not None else False,
     )
-
-
-def _resolve_color(color: Color | None) -> str | None:
-    """Resolve an openpyxl Color to an ARGB hex string.
-
-    Handles rgb, theme, and indexed color types.
-
-    Args:
-        color: The openpyxl Color object to resolve.
-
-    Returns:
-        The ARGB hex string (e.g., "FF000000") or None if unresolvable.
-
-    """
-    if color is None:
-        return None
-
-    # Handle direct RGB color
-    if hasattr(color, "rgb") and color.rgb and color.rgb != "00000000":
-        rgb = color.rgb
-        # Handle both 6-digit and 8-digit hex
-        if isinstance(rgb, str):
-            if len(rgb) == 6:
-                return f"FF{rgb}"
-            return rgb
-
-    # Handle indexed colors (simplified - just return None for now)
-    # Full implementation would use the color palette
-    if hasattr(color, "indexed") and color.indexed is not None:
-        # Common indexed colors
-        indexed_colors = {
-            0: "FF000000",  # Black
-            1: "FFFFFFFF",  # White
-            2: "FFFF0000",  # Red
-            3: "FF00FF00",  # Green
-            4: "FF0000FF",  # Blue
-            5: "FFFFFF00",  # Yellow
-            6: "FFFF00FF",  # Magenta
-            7: "FF00FFFF",  # Cyan
-        }
-        return indexed_colors.get(color.indexed)
-
-    # Theme colors require workbook context (simplified for now)
-    if hasattr(color, "theme") and color.theme is not None:
-        # Basic theme color mapping (would need workbook.theme for full support)
-        return None
-
-    return None
