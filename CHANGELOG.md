@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.4.0](https://github.com/xlbone/xldump/compare/v0.3.0...v0.4.0) (2026-03-01)
+
+
+### Features
+
+* implement Phase 1 MVP for xldump ([b939301](https://github.com/xlbone/xldump/commit/b939301813286c69b95c331670439560d9893190))
+* implement Phase 2 extractors and theme color resolution ([#3](https://github.com/xlbone/xldump/issues/3)) ([4e1b85a](https://github.com/xlbone/xldump/commit/4e1b85ab65fc13a692cedea2fcf219c813c16e22))
+* Phase 1 MVP implementation ([224e304](https://github.com/xlbone/xldump/commit/224e3049b17ceed0cafe6f10b032cadb03a6230a))
+
+
+### Miscellaneous
+
+* add .serena/memories and tasks to gitignore ([2de4540](https://github.com/xlbone/xldump/commit/2de454011b18114852bc3df1cd228f7e4fa88409))
+* exclude entire .serena directory from git ([e5eab82](https://github.com/xlbone/xldump/commit/e5eab827ff519709df9de93d8f3c83cbb5048a7e))
+
+
+### Documentation
+
+* add multilingual README support ([3270c8e](https://github.com/xlbone/xldump/commit/3270c8e63b56c72c53f12ca22f8a1ea2ae3eea35))
+* add multilingual README support (English, Japanese, Chinese) ([9c08722](https://github.com/xlbone/xldump/commit/9c08722ef7609952ea74de3ec0fa570855652bf4))
+* add output format documentation ([01f5fa5](https://github.com/xlbone/xldump/commit/01f5fa5444a6f32828872b25551664b7271088b2))
+* add output format documentation in 3 languages ([fde1490](https://github.com/xlbone/xldump/commit/fde149050c4c76aac7582fd4aa81b5954d4a1124))
+* move language links below title and badges ([7e28c04](https://github.com/xlbone/xldump/commit/7e28c040a2a898e1cd7e55238ff30e9464a0a1d4))
+* move language links below title and badges ([026aea7](https://github.com/xlbone/xldump/commit/026aea7df57e96fbe16fa181703a0d1c94705f17))
+* update README.md for xldump project ([b5a0cff](https://github.com/xlbone/xldump/commit/b5a0cffe640d33ad82e28e14aa44461bd25da95d))
+
+
+### Refactoring
+
+* migrate models from dataclass to pydantic ([b4b6fbb](https://github.com/xlbone/xldump/commit/b4b6fbb6c47a734e7f2a7f59eafb0ef1b14da582))
+* migrate models from dataclass to pydantic ([179d72a](https://github.com/xlbone/xldump/commit/179d72acc9688969ac747b6bc45d605b5c9a37d1))
+
+
+### CI/CD
+
+* add release workflow for PyPI publishing ([2e22a0b](https://github.com/xlbone/xldump/commit/2e22a0b93a2d01633a3c28c27f39139f855b1081))
+
 ## [0.2.1](https://github.com/masakaya/python-uv-project/compare/python-uv-project-v0.2.0...python-uv-project-v0.2.1) (2025-11-21)
 
 
