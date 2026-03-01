@@ -1,18 +1,20 @@
 """Data models for xldump.
 
-This module defines dataclasses that represent Excel workbook structures.
+This module defines Pydantic models that represent Excel workbook structures.
 Field names follow openpyxl conventions for familiarity.
 """
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict
 
-@dataclass
-class FontInfo:
+
+class FontInfo(BaseModel):
     """Font style information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str | None = None
     size: float | None = None
@@ -21,27 +23,31 @@ class FontInfo:
     color: str | None = None  # ARGB hex
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert to dict, excluding None values."""
+        """Convert to dict, excluding None values and False."""
         return {
-            k: v for k, v in asdict(self).items() if v is not None and v is not False
+            k: v
+            for k, v in self.model_dump().items()
+            if v is not None and v is not False
         }
 
 
-@dataclass
-class FillInfo:
+class FillInfo(BaseModel):
     """Cell fill (background) information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     type: str | None = None  # "solid", "pattern", etc.
     fg_color: str | None = None  # ARGB hex
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict, excluding None values."""
-        return {k: v for k, v in asdict(self).items() if v is not None}
+        return self.model_dump(exclude_none=True)
 
 
-@dataclass
-class AlignmentInfo:
+class AlignmentInfo(BaseModel):
     """Cell alignment information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     horizontal: str | None = None
     vertical: str | None = None
@@ -50,25 +56,29 @@ class AlignmentInfo:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict, excluding None values and False."""
         return {
-            k: v for k, v in asdict(self).items() if v is not None and v is not False
+            k: v
+            for k, v in self.model_dump().items()
+            if v is not None and v is not False
         }
 
 
-@dataclass
-class BorderSideInfo:
+class BorderSideInfo(BaseModel):
     """Single border side information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     style: str | None = None  # "thin", "medium", "thick", etc.
     color: str | None = None  # ARGB hex
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict, excluding None values."""
-        return {k: v for k, v in asdict(self).items() if v is not None}
+        return self.model_dump(exclude_none=True)
 
 
-@dataclass
-class BorderInfo:
+class BorderInfo(BaseModel):
     """Cell border information (all four sides)."""
+
+    model_config = ConfigDict(extra="forbid")
 
     top: BorderSideInfo | None = None
     bottom: BorderSideInfo | None = None
@@ -76,42 +86,34 @@ class BorderInfo:
     right: BorderSideInfo | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert to dict, excluding None values."""
+        """Convert to dict, excluding None values and empty dicts."""
         result: dict[str, Any] = {}
-        if self.top:
-            top_dict = self.top.to_dict()
-            if top_dict:
-                result["top"] = top_dict
-        if self.bottom:
-            bottom_dict = self.bottom.to_dict()
-            if bottom_dict:
-                result["bottom"] = bottom_dict
-        if self.left:
-            left_dict = self.left.to_dict()
-            if left_dict:
-                result["left"] = left_dict
-        if self.right:
-            right_dict = self.right.to_dict()
-            if right_dict:
-                result["right"] = right_dict
+        for side in ("top", "bottom", "left", "right"):
+            side_info = getattr(self, side)
+            if side_info:
+                side_dict = side_info.to_dict()
+                if side_dict:
+                    result[side] = side_dict
         return result
 
 
-@dataclass
-class ProtectionInfo:
+class ProtectionInfo(BaseModel):
     """Cell protection information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     locked: bool = True
     hidden: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict."""
-        return asdict(self)
+        return self.model_dump()
 
 
-@dataclass
-class CellStyle:
+class CellStyle(BaseModel):
     """Complete cell style information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     font: FontInfo | None = None
     fill: FillInfo | None = None
@@ -123,22 +125,12 @@ class CellStyle:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict, excluding None values and empty dicts."""
         result: dict[str, Any] = {}
-        if self.font:
-            font_dict = self.font.to_dict()
-            if font_dict:
-                result["font"] = font_dict
-        if self.fill:
-            fill_dict = self.fill.to_dict()
-            if fill_dict:
-                result["fill"] = fill_dict
-        if self.alignment:
-            alignment_dict = self.alignment.to_dict()
-            if alignment_dict:
-                result["alignment"] = alignment_dict
-        if self.border:
-            border_dict = self.border.to_dict()
-            if border_dict:
-                result["border"] = border_dict
+        for field_name in ("font", "fill", "alignment", "border"):
+            field_value = getattr(self, field_name)
+            if field_value:
+                field_dict = field_value.to_dict()
+                if field_dict:
+                    result[field_name] = field_dict
         if self.number_format and self.number_format != "General":
             result["number_format"] = self.number_format
         if self.protection:
@@ -146,9 +138,10 @@ class CellStyle:
         return result
 
 
-@dataclass
-class CellDump:
+class CellDump(BaseModel):
     """Dumped cell information including value and style."""
+
+    model_config = ConfigDict(extra="forbid")
 
     coordinate: str
     value: Any = None
@@ -173,9 +166,10 @@ class CellDump:
         return result
 
 
-@dataclass
-class MergedCellInfo:
+class MergedCellInfo(BaseModel):
     """Merged cell range information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     range: str
     min_row: int
@@ -185,12 +179,13 @@ class MergedCellInfo:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict."""
-        return asdict(self)
+        return self.model_dump()
 
 
-@dataclass
-class DataValidationInfo:
+class DataValidationInfo(BaseModel):
     """Data validation rule information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     range: str
     type: str | None = None
@@ -217,9 +212,10 @@ class DataValidationInfo:
         return result
 
 
-@dataclass
-class ImageInfo:
+class ImageInfo(BaseModel):
     """Image position information."""
+
+    model_config = ConfigDict(extra="forbid")
 
     anchor: str
     width: int | None = None
@@ -238,9 +234,10 @@ class ImageInfo:
         return result
 
 
-@dataclass
-class SheetInfo:
+class SheetInfo(BaseModel):
     """Lightweight sheet information for scan operation."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str
     index: int
@@ -253,31 +250,23 @@ class SheetInfo:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict."""
-        return {
-            "name": self.name,
-            "index": self.index,
-            "dimensions": self.dimensions,
-            "max_row": self.max_row,
-            "max_column": self.max_column,
-            "merged_cell_count": self.merged_cell_count,
-            "has_images": self.has_images,
-            "has_data_validations": self.has_data_validations,
-        }
+        return self.model_dump()
 
 
-@dataclass
-class SheetDump:
+class SheetDump(BaseModel):
     """Complete sheet information for dump operation."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str
     index: int
     dimensions: str | None = None
     max_row: int = 0
     max_column: int = 0
-    merged_cells: list[MergedCellInfo] = field(default_factory=list)
-    data_validations: list[DataValidationInfo] = field(default_factory=list)
-    images: list[ImageInfo] = field(default_factory=list)
-    rows: dict[str, dict[str, CellDump | None]] = field(default_factory=dict)
+    merged_cells: list[MergedCellInfo] = []
+    data_validations: list[DataValidationInfo] = []
+    images: list[ImageInfo] = []
+    rows: dict[str, dict[str, CellDump | None]] = {}
 
     def to_dict(self, *, include_values: bool = True) -> dict[str, Any]:
         """Convert to dict.
@@ -315,12 +304,13 @@ class SheetDump:
         return result
 
 
-@dataclass
-class WorkbookDump:
+class WorkbookDump(BaseModel):
     """Complete workbook dump information."""
 
+    model_config = ConfigDict(extra="forbid")
+
     file: str
-    sheets: list[SheetDump] = field(default_factory=list)
+    sheets: list[SheetDump] = []
     sheet_count: int = 0
 
     def to_dict(self, *, include_values: bool = True) -> dict[str, Any]:
@@ -337,13 +327,14 @@ class WorkbookDump:
         }
 
 
-@dataclass
-class ScanResult:
+class ScanResult(BaseModel):
     """Result of scan operation."""
+
+    model_config = ConfigDict(extra="forbid")
 
     file: str
     sheet_count: int
-    sheets: list[SheetInfo] = field(default_factory=list)
+    sheets: list[SheetInfo] = []
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict."""
