@@ -34,7 +34,7 @@ from xldump.models import (
     WorkbookDump,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.4.0"
 __all__ = [
     # Core functions
     "scan",
