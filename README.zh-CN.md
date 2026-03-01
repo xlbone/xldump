@@ -1,9 +1,9 @@
-[English](./README.md) | [日本語](./README.ja.md) | [中文](./README.zh-CN.md)
-
 # xldump
 
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[English](./README.md) | [日本語](./README.ja.md) | [中文](./README.zh-CN.md)
 
 将 Excel (.xlsx) 文件的物理结构导出为 JSON 的 Python 库和 CLI 工具。
 
