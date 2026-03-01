@@ -2,6 +2,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![codecov](https://codecov.io/gh/xlbone/xldump/graph/badge.svg)](https://codecov.io/gh/xlbone/xldump)
 
 [English](./README.md) | [日本語](./README.ja.md) | [中文](./README.zh-CN.md)
 
