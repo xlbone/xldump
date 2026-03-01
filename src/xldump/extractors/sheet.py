@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from xldump.extractors.image import has_images as check_has_images
+from xldump.extractors.validation import has_data_validations as check_has_validations
 from xldump.models import SheetInfo
 
 if TYPE_CHECKING:
@@ -30,16 +32,6 @@ def extract_sheet_info(ws: Worksheet, index: int) -> SheetInfo:
     if hasattr(ws, "merged_cells") and ws.merged_cells:
         merged_cell_count = len(list(ws.merged_cells.ranges))
 
-    # Check for images (not available in read_only mode)
-    has_images = False
-    if hasattr(ws, "_images") and ws._images:
-        has_images = len(ws._images) > 0
-
-    # Check for data validations (not available in read_only mode)
-    has_data_validations = False
-    if hasattr(ws, "data_validations") and ws.data_validations:
-        has_data_validations = len(ws.data_validations.dataValidation) > 0
-
     return SheetInfo(
         name=ws.title,
         index=index,
@@ -47,6 +39,6 @@ def extract_sheet_info(ws: Worksheet, index: int) -> SheetInfo:
         max_row=ws.max_row if ws.max_row else 0,
         max_column=ws.max_column if ws.max_column else 0,
         merged_cell_count=merged_cell_count,
-        has_images=has_images,
-        has_data_validations=has_data_validations,
+        has_images=check_has_images(ws),
+        has_data_validations=check_has_validations(ws),
     )

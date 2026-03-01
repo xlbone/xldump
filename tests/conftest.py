@@ -8,9 +8,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from openpyxl import Workbook
+from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.worksheet.datavalidation import DataValidation
+import pytest
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -23,6 +25,8 @@ def create_fixtures() -> None:
     _create_merged_cells()
     _create_styled_cells()
     _create_multi_sheet()
+    _create_data_validations()
+    _create_with_images()
 
 
 @pytest.fixture
@@ -53,6 +57,18 @@ def styled_cells_path(fixtures_dir: Path) -> Path:
 def multi_sheet_path(fixtures_dir: Path) -> Path:
     """Return path to multi_sheet.xlsx fixture."""
     return fixtures_dir / "multi_sheet.xlsx"
+
+
+@pytest.fixture
+def data_validations_path(fixtures_dir: Path) -> Path:
+    """Return path to data_validations.xlsx fixture."""
+    return fixtures_dir / "data_validations.xlsx"
+
+
+@pytest.fixture
+def with_images_path(fixtures_dir: Path) -> Path:
+    """Return path to with_images.xlsx fixture."""
+    return fixtures_dir / "with_images.xlsx"
 
 
 def _create_simple_table() -> None:
@@ -196,3 +212,85 @@ def _create_multi_sheet() -> None:
     ws3["A2"] = "This is a note."
 
     wb.save(FIXTURES_DIR / "multi_sheet.xlsx")
+
+
+def _create_data_validations() -> None:
+    """Create a fixture with data validations."""
+    wb = Workbook()
+    ws = wb.active
+    if ws is None:
+        return
+    ws.title = "Sheet1"
+
+    # Header row
+    ws["A1"] = "Status"
+    ws["B1"] = "Priority"
+    ws["C1"] = "Score"
+
+    # Data row
+    ws["A2"] = "Active"
+    ws["B2"] = "High"
+    ws["C2"] = 50
+
+    # List validation (dropdown)
+    dv_list = DataValidation(
+        type="list",
+        formula1='"Active,Inactive,Pending"',
+        allow_blank=True,
+    )
+    dv_list.prompt = "Select a status"
+    dv_list.error = "Invalid status"
+    dv_list.add("A2:A10")
+    ws.add_data_validation(dv_list)
+
+    # Whole number validation (range 1-100)
+    dv_whole = DataValidation(
+        type="whole",
+        operator="between",
+        formula1="1",
+        formula2="100",
+        allow_blank=False,
+    )
+    dv_whole.prompt = "Enter a score between 1 and 100"
+    dv_whole.error = "Score must be 1-100"
+    dv_whole.add("C2:C10")
+    ws.add_data_validation(dv_whole)
+
+    wb.save(FIXTURES_DIR / "data_validations.xlsx")
+
+
+def _create_with_images() -> None:
+    """Create a fixture with images."""
+    wb = Workbook()
+    ws = wb.active
+    if ws is None:
+        return
+    ws.title = "Sheet1"
+
+    ws["A1"] = "Document with Image"
+
+    # Create a simple 1x1 pixel PNG image for testing
+    # PNG header + minimal IHDR + IDAT + IEND
+    png_data = (
+        b"\x89PNG\r\n\x1a\n"  # PNG signature
+        b"\x00\x00\x00\rIHDR"  # IHDR chunk
+        b"\x00\x00\x00\x01"  # width: 1
+        b"\x00\x00\x00\x01"  # height: 1
+        b"\x08\x02"  # bit depth 8, color type RGB
+        b"\x00\x00\x00"  # compression, filter, interlace
+        b"\x90wS\xde"  # CRC
+        b"\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N"
+        b"\x00\x00\x00\x00IEND\xaeB`\x82"  # IEND chunk
+    )
+
+    # Save the test image
+    test_image_path = FIXTURES_DIR / "test_image.png"
+    test_image_path.write_bytes(png_data)
+
+    # Add image to worksheet
+    img = Image(str(test_image_path))
+    img.width = 100
+    img.height = 100
+    ws.add_image(img, "B2")
+
+    wb.save(FIXTURES_DIR / "with_images.xlsx")
