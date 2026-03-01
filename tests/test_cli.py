@@ -30,7 +30,14 @@ class TestCLIScan:
     def test_scan_compact_output(self, simple_table_path: Path) -> None:
         """Test scan with compact JSON output."""
         result = subprocess.run(
-            [sys.executable, "-m", "xldump.cli", "scan", str(simple_table_path), "--compact"],
+            [
+                sys.executable,
+                "-m",
+                "xldump.cli",
+                "scan",
+                str(simple_table_path),
+                "--compact",
+            ],
             capture_output=True,
             text=True,
         )
@@ -42,7 +49,13 @@ class TestCLIScan:
     def test_scan_nonexistent_file(self, fixtures_dir: Path) -> None:
         """Test scan with nonexistent file."""
         result = subprocess.run(
-            [sys.executable, "-m", "xldump.cli", "scan", str(fixtures_dir / "nonexistent.xlsx")],
+            [
+                sys.executable,
+                "-m",
+                "xldump.cli",
+                "scan",
+                str(fixtures_dir / "nonexistent.xlsx"),
+            ],
             capture_output=True,
             text=True,
         )
@@ -150,7 +163,14 @@ class TestCLIDump:
     def test_dump_compact_output(self, simple_table_path: Path) -> None:
         """Test dump with compact JSON output."""
         result = subprocess.run(
-            [sys.executable, "-m", "xldump.cli", "dump", str(simple_table_path), "--compact"],
+            [
+                sys.executable,
+                "-m",
+                "xldump.cli",
+                "dump",
+                str(simple_table_path),
+                "--compact",
+            ],
             capture_output=True,
             text=True,
         )

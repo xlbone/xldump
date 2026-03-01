@@ -5,86 +5,86 @@
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Python library and CLI tool that dumps the physical structure of Excel (.xlsx) files to JSON.
+将 Excel (.xlsx) 文件的物理结构导出为 JSON 的 Python 库和 CLI 工具。
 
-The core value is a wrapper that converts openpyxl Cell objects into structured dict/JSON.
+核心价值是将 openpyxl 的 Cell 对象转换为结构化 dict/JSON 的封装器。
 
-## Features
+## 特性
 
-- **Deterministic & Reproducible**: Extracts only physical structure without using LLM
-- **openpyxl Compatible**: Field names aligned with openpyxl attribute names
-- **Flexible Output Options**: Individual control for styles, values, merges, borders, validations, and images
-- **NDA-Safe Mode**: Use `--no-values` to exclude cell values and safely extract only style structure
+- **确定性和可重现性**: 不使用 LLM，仅提取物理结构
+- **兼容 openpyxl**: 字段名与 openpyxl 属性名保持一致
+- **灵活的输出选项**: 可单独控制样式、值、合并单元格、边框、数据验证和图片
+- **NDA 安全模式**: 使用 `--no-values` 排除单元格值，安全地仅提取样式结构
 
-## Installation
+## 安装
 
 ```bash
 pip install xldump
 ```
 
-Or using uv:
+或使用 uv：
 
 ```bash
 uv add xldump
 ```
 
-## CLI Usage
+## CLI 使用示例
 
 ```bash
-# List sheets
+# 查看工作表列表
 xldump scan design_doc.xlsx
 
-# Dump all sheets
+# 导出所有工作表
 xldump dump design_doc.xlsx
 
-# Specific sheets only
+# 仅导出指定工作表
 xldump dump design_doc.xlsx -s "Sheet1" "Sheet2"
 
-# Style-only mode (no values = NDA-safe)
+# 仅样式模式（不含值 = NDA 安全）
 xldump dump design_doc.xlsx --no-values
 
-# Output to file
+# 输出到文件
 xldump dump design_doc.xlsx -o output.json
 
-# Compact output
+# 紧凑输出
 xldump dump design_doc.xlsx --compact
 ```
 
-## Library Usage
+## 作为库使用
 
 ```python
 import xldump
 
-# Get sheet list (lightweight & fast)
+# 获取工作表列表（轻量且快速）
 sheets = xldump.scan("design_doc.xlsx")
 for sheet in sheets:
-    print(f"{sheet.name}: {sheet.max_row} rows x {sheet.max_column} cols")
+    print(f"{sheet.name}: {sheet.max_row} 行 x {sheet.max_column} 列")
 
-# Dump entire workbook
+# 导出整个工作簿
 workbook = xldump.dump("design_doc.xlsx")
 print(workbook.to_dict())
 
-# Dump single sheet
+# 导出单个工作表
 sheet = xldump.dump_sheet("design_doc.xlsx", "Sheet1")
 print(sheet.to_dict())
 
-# With options
+# 使用选项
 workbook = xldump.dump(
     "design_doc.xlsx",
-    sheets=["Sheet1", "Sheet2"],  # Target sheets
-    include_styles=True,          # Style information
-    include_values=True,          # Cell values
-    include_merges=True,          # Merged cell information
-    include_borders=True,         # Border information
-    include_validations=True,     # Data validations
-    include_images=True,          # Image position information
-    data_only=False,              # Get calculated results instead of formulas
+    sheets=["Sheet1", "Sheet2"],  # 目标工作表
+    include_styles=True,          # 样式信息
+    include_values=True,          # 单元格值
+    include_merges=True,          # 合并单元格信息
+    include_borders=True,         # 边框信息
+    include_validations=True,     # 数据验证
+    include_images=True,          # 图片位置信息
+    data_only=False,              # 获取计算结果而非公式
 )
 ```
 
-## Output Examples
+## 输出示例
 
-### scan output
+### scan 输出
 
 ```json
 {
@@ -92,7 +92,7 @@ workbook = xldump.dump(
   "sheet_count": 3,
   "sheets": [
     {
-      "name": "Design",
+      "name": "设计",
       "index": 0,
       "dimensions": "A1:F30",
       "max_row": 30,
@@ -105,14 +105,14 @@ workbook = xldump.dump(
 }
 ```
 
-### dump output
+### dump 输出
 
 ```json
 {
   "file": "design_doc.xlsx",
   "sheets": [
     {
-      "name": "Design",
+      "name": "设计",
       "index": 0,
       "dimensions": "A1:F30",
       "merged_cells": [
@@ -126,7 +126,7 @@ workbook = xldump.dump(
         "1": {
           "A": {
             "coordinate": "A1",
-            "value": "1. System Overview",
+            "value": "1. 系统概述",
             "data_type": "s",
             "style": {
               "font": {
@@ -147,28 +147,28 @@ workbook = xldump.dump(
 }
 ```
 
-## Development
+## 开发
 
 ```bash
-# Clone repository
+# 克隆仓库
 git clone https://github.com/xlbone/xldump.git
 cd xldump
 
-# Install dependencies
+# 安装依赖
 uv sync --all-groups
 
-# Run tests
+# 运行测试
 poe test
 
-# Run all checks
+# 运行所有检查
 poe check
 ```
 
-## Notes
+## 注意事项
 
-- Only `.xlsx` format is supported (legacy `.xls` format is not supported)
-- `data_only=True` returns cached values from when the file was last opened in Excel. Returns `None` if not calculated
+- 仅支持 `.xlsx` 格式（不支持旧版 `.xls` 格式）
+- `data_only=True` 返回文件最后在 Excel 中打开时的缓存值。如果未计算则返回 `None`
 
-## License
+## 许可证
 
 MIT License
